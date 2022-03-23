@@ -1,0 +1,206 @@
+
+   
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+</title>
+<style>
+#heading{
+	text-align: center;
+	position:absolute;
+	width:100vw;
+}
+</style>
+</head>
+<body style='overflow:hidden'> 
+
+<div id='heading'>
+	<h3 style = "color:red">Homework 0</h3>
+	<button id = 'buttonToGo'>Press</button>
+</div>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<script type ="module">
+javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='https://mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
+
+import * as THREE from "https://threejs.org/build/three.module.js";
+import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
+import { MTLLoader } from 'https://unpkg.com/three/examples/jsm/loaders/MTLLoader.js';
+import { OBJLoader } from 'https://unpkg.com/three/examples/jsm/loaders/OBJLoader.js';
+// my script
+
+var camera, scene, renderer;
+var Thomas, isWalking = 0, go = true;
+var clock = new THREE.Clock();
+init();
+animate();
+
+document.getElementById("buttonToGo").onclick = function (){
+	if(go){
+		document.getElementById("buttonToGo").innerHTML = "go";
+	}
+	else{
+		document.getElementById("buttonToGo").innerHTML = "stop";
+	}
+	go =!go;
+	
+}
+
+function init() {
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+	camera.position.z = 200;
+	renderer = new THREE.WebGLRenderer({antialias: true});
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setClearColor(0x888888);
+	window.addEventListener('resize', onWindowResize, false);
+	document.body.appendChild(renderer.domElement);
+	let controls = new OrbitControls(camera, renderer.domElement);
+	
+	var light = new THREE.PointLight( 0xffffff, 1, 1000 );
+	scene.add( light );
+	var gridXZ = new THREE.GridHelper(200, 20, 'red', 'white');
+    scene.add(gridXZ);
+	var axes = new THREE.AxisHelper(10);
+	scene.add(axes);
+
+	readModel('Thomas');
+
+}
+function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+	
+	let angle = clock.getDelta();
+	if(go){
+		if(turn){
+			if(Thomas !== undefined){
+				if(isWalking === 0 | isWalking === 2) walk();
+				else turn(angle);
+			}
+		}
+	}
+	renderer.render(scene,camera);
+	requestAnimationFrame( animate );
+}
+
+function walk(){
+	var x = Thomas.position.x;
+	if(Math.floor(x) === 50 & isWalking === 0){
+		isWalking = 1;
+		Thomas.position.x = 50;
+	}
+	else if(Math.floor(x) === -50 & isWalking === 2){
+		isWalking = 3;
+		Thomas.position.x = -50;
+	}
+	else if(isWalking === 0){
+		Thomas.position.x += 1.2;
+	}
+	else if(isWalking === 2){
+		Thomas.position.x -= 1.2;
+	}
+}
+
+function turn(angle){
+	var z = Thomas.position.z;
+	if(Math.floor(z) === -50 & isWalking === 1){
+		isWalking = 2;
+		Thomas.rotation.y = Math.PI/2;
+		Thomas.position.z = -50;
+		Thomas.position.x = 50;
+	}
+	else if(Math.floor(z) === 50 & isWalking === 3) {
+		isWalking = 0;
+		Thomas.rotation.y = -Math.PI/2;
+		Thomas.position.z = 50;
+		Thomas.position.x = -50;
+	}
+	else if(isWalking === 1){
+		Thomas.rotation.y += 0.026;
+		Thomas.position.z -= 50 * angle;
+		if(Math.floor(z) > 0)
+			Thomas.position.x += 25 * angle;
+		else Thomas.position.x -= 25 * angle;
+	}
+	else if(isWalking === 3){
+		Thomas.rotation.y += 0.026;
+		Thomas.position.z += 50 * angle;
+		if(Math.floor(z) < 0)
+			Thomas.position.x -= 25 * angle;
+		else Thomas.position.x += 25 * angle;
+	}
+	
+}
+
+function readModel (modelName, targetSize=20) {
+	var onProgress = function(xhr) {
+	if (xhr.lengthComputable) {
+		var percentComplete = xhr.loaded / xhr.total * 100;
+			console.log(Math.round(percentComplete, 2) + '% downloaded');
+		}
+	};
+
+	var onError = function(xhr) {};
+
+	var mtlLoader =  new MTLLoader();
+	mtlLoader.setPath('models/');
+	mtlLoader.load(modelName+'.mtl', function(materials) {
+		materials.preload();
+
+		var objLoader =  new OBJLoader();
+		objLoader.setMaterials(materials);
+		objLoader.setPath('models/');
+		objLoader.load(modelName+'.obj', function(object) {
+
+		let theObject =  unitize (object, targetSize);
+		//theObject.add(new THREE.BoxHelper(theObject));
+		theObject.name = 'OBJ'
+
+		Thomas = new THREE.Object3D();
+		Thomas.add(theObject);
+		Thomas.rotation.y = -Math.PI/2;
+
+		scene.add (Thomas);
+		Thomas.position.set(0, 5, 50);
+		
+
+		}, onProgress, onError);
+
+	});
+
+}
+
+function unitize (object, targetSize) {  
+
+	// find bounding box of 'object'
+	var box3 = new THREE.Box3();
+	box3.setFromObject (object);
+	var size = new THREE.Vector3();
+	size.subVectors (box3.max, box3.min);
+	var center = new THREE.Vector3();
+	center.addVectors(box3.max, box3.min).multiplyScalar (0.5);
+
+	console.log ('center: ' + center.x + ', '+center.y + ', '+center.z );
+	console.log ('size: ' + size.x + ', ' +  size.y + ', '+size.z );
+
+	// uniform scaling according to objSize
+	var objSize = Math.max (size.x, size.y, size.z);
+	var scaleSet = targetSize/objSize;
+
+	var theObject =  new THREE.Object3D();
+	theObject.add (object);
+	object.scale.set (scaleSet, scaleSet, scaleSet);
+	object.position.set (-center.x*scaleSet, center.y*scaleSet/6, -center.z*scaleSet);
+	return theObject;
+}
+
+</script>
+
+</body>
+</html>

@@ -26,7 +26,12 @@
 	<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 	
-	<script>
+	
+	<script type ="module">
+		
+		//import { MTLLoader } from 'https://unpkg.com/three/examples/jsm/loaders/MTLLoader.js';
+		//import { OBJLoader } from 'https://unpkg.com/three/examples/jsm/loaders/OBJLoader.js';
+	
 		
 		var renderer, scene, camera;
 		//var m ;
@@ -34,6 +39,7 @@
 		var clock = new THREE.Clock();
 		var loader = new THREE.TextureLoader();
 		var trainAssembly = new THREE.Object3D(), trees;
+		var Thomas;
 
 		init();
 		animate();
@@ -59,6 +65,66 @@
 			}
 			
 		);*/
+		/*function readModel (modelName, targetSize=40) {
+			var onProgress = function(xhr) {
+				if (xhr.lengthComputable) {
+					var percentComplete = xhr.loaded / xhr.total * 100;
+					console.log(Math.round(percentComplete, 2) + '% downloaded');
+				}
+			};
+
+			var onError = function(xhr) {};
+
+			var mtlLoader =  new MTLLoader();
+			mtlLoader.setPath('models/');
+			mtlLoader.load(modelName+'.mtl', function(materials) {
+			materials.preload();
+
+			var objLoader =  new OBJLoader();
+			objLoader.setMaterials(materials);
+			objLoader.setPath('models/');
+			objLoader.load(modelName+'.obj', function(object) {
+
+			let theObject =  unitize (object, targetSize);
+			//theObject.add(new THREE.BoxHelper(theObject));
+			theObject.name = 'OBJ'
+
+			Thomas = new THREE.Object3D();
+			Thomas.add(theObject);
+			Thomas.rotation.y = Math.PI/2;
+
+			scene.add (Thomas);
+
+			}, onProgress, onError);
+
+			});
+
+		}
+		
+		function unitize(object, targetSize=50){
+			
+			var box3 = new THREE.Box3();
+			box3.setFromObject(object);
+			var size = new THREE.Vector3();
+			size.subVectors(box3.max, box3.min);
+			var center = new THREE.Vector3();
+			center.addVectors(box3.max, box3.min).multiplyScalar(0.5);
+			
+			console.log('center:'+center.x + ','+center.y + ','+center.z);
+			console.log('size:' + size.x + ','+ size.y +',' + size.z);
+			
+			var objSize = Math.max(size.x, size.y, size.z);
+			var scaleSet = targetSize/objSize;
+			
+			var theObject = new THREE.Object3D();
+			theObject.add(object);
+			object.scale.set(scaleSet, scaleSet, scaleSet);
+			object.position.set(-center.x*scaleSet, -center.y*scaleSet, -center.z*scaleSet);
+			
+			return theObject;
+		}*/
+		
+		
 		
 		function Track(){
 			//鐵軌
@@ -257,6 +323,10 @@
 			
 			trainAssembly.position.set(0, 10, 60);
 			scene.add(trainAssembly);
+			
+			/*readModel('11709_train_v1_L3');
+			Thomas = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 30), new THREE.MeshNormalMaterial());
+			run = true;*/
 			
 			clock.getDelta();
   
