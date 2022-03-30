@@ -25,12 +25,15 @@
 	<script src="https://threejs.org/build/three.min.js"></script>
 	<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="https://raw.githack.com/mrdoob/three.js/dev/examples/js/loaders/MTLLoader.js"></script>
+	<script src="https://raw.githack.com/mrdoob/three.js/dev/examples/js/loaders/OBJLoader.js"></script>
 	
 	
-	<script type ="module">
+	<script>
 		
 		//import { MTLLoader } from 'https://unpkg.com/three/examples/jsm/loaders/MTLLoader.js';
 		//import { OBJLoader } from 'https://unpkg.com/three/examples/jsm/loaders/OBJLoader.js';
+		
 	
 		
 		var renderer, scene, camera;
@@ -40,32 +43,13 @@
 		var loader = new THREE.TextureLoader();
 		var trainAssembly = new THREE.Object3D(), trees;
 		var Thomas;
+		var light;
 
 		init();
 		animate();
 		
-		/*loader.load(
-			
-			'https://cdn.myminifactory.com/assets/object-assets/591f5bd30dded/images/720X720-thomas-myminifactory-photo-05.jpg',
-			function (texture){
-				m = new THREE.MeshBasicMaterial({
-					map : texture
-				});
-				
-				//let mesh = new THREE.Mesh(new THREE.PlaneGeometry(80, 60), m);
-				//scene.add(mesh);
-				train = new THREE.Mesh(new THREE.PlaneGeometry(80, 60), m);
-				train.position.set(0, 0, 40);
-				scene.add(train);
-			},
-			undefined,
-			
-			function (err){
-				console.error('An error happened');	
-			}
-			
-		);*/
-		/*function readModel (modelName, targetSize=40) {
+		/*
+		function readModel (modelName, targetSize=40) {
 			var onProgress = function(xhr) {
 				if (xhr.lengthComputable) {
 					var percentComplete = xhr.loaded / xhr.total * 100;
@@ -75,15 +59,15 @@
 
 			var onError = function(xhr) {};
 
-			var mtlLoader =  new MTLLoader();
+			var mtlLoader =  new THREE.MTLLoader();
 			mtlLoader.setPath('models/');
-			mtlLoader.load(modelName+'.mtl', function(materials) {
+			mtlLoader.load('11709_train_v1_L3.mtl', function(materials) {
 			materials.preload();
 
-			var objLoader =  new OBJLoader();
+			var objLoader =  new THREE.OBJLoader();
 			objLoader.setMaterials(materials);
 			objLoader.setPath('models/');
-			objLoader.load(modelName+'.obj', function(object) {
+			objLoader.load('11709_train_v1_L3.obj', function(object) {
 
 			let theObject =  unitize (object, targetSize);
 			//theObject.add(new THREE.BoxHelper(theObject));
@@ -91,7 +75,8 @@
 
 			Thomas = new THREE.Object3D();
 			Thomas.add(theObject);
-			Thomas.rotation.y = Math.PI/2;
+			Thomas.rotation.x = -Math.PI/2;
+			Thomas.position.set(0, 18, 60);
 
 			scene.add (Thomas);
 
@@ -151,26 +136,7 @@
 			points.rotation.x = Math.PI/2;
 			rail.add(points);
 
-			/*var rails = new THREE.Group();
-			var points = [], points2 = [];
-			var theta =0;
-			for (var i=0; i<150; i++){
-				theta = i*Math.PI*2/100;
-				var point = new THREE.Vector3(50*Math.cos(theta), 0, 50*Math.sin(theta));
-				points.push(point);
-			}
 			
-			var geom = new THREE.BufferGeometry().setFromPoints(points);
-			var rail = new THREE.Line(geom, new THREE.LineBasicMaterial({color:0xD78545}));
-			
-			theta = 0;
-			for (var i=0; i<150; i++){
-				theta = i*Math.PI*2/100;
-				var point2 = new THREE.Vector3(70*Math.cos(theta), 0, 70*Math.sin(theta));
-				points2.push(point2);
-			}
-			geom = new THREE.BufferGeometry().setFromPoints(points2);
-			rail2 = new THREE.Line(geom, new THREE.LineBasicMaterial({color:0xD78545}))*/
 			
 			//小石子
 			loader.crossOrigin = '';
@@ -323,10 +289,14 @@
 			
 			trainAssembly.position.set(0, 10, 60);
 			scene.add(trainAssembly);
+			light = new THREE.PointLight(0xFFFAC5, 30, 200);
+			light.position.set(0, 100, 30);
+			scene.add(light);
 			
-			/*readModel('11709_train_v1_L3');
-			Thomas = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 30), new THREE.MeshNormalMaterial());
-			run = true;*/
+			//readModel();
+			
+
+			run = true;
 			
 			clock.getDelta();
   
@@ -407,6 +377,8 @@
 				angle += Math.PI/900;
 				trainAssembly.position.set(60*Math.sin(angle), 10, 60*Math.cos(angle));
 				trainAssembly.rotation.y = angle;
+				//Thomas.position.set(60*Math.sin(angle), 18, 60*Math.cos(angle));
+				//Thomas.rotation.z = angle;
  
 				//setTimeout(run, 7.295);
 				//train.position.x += 0.5;
