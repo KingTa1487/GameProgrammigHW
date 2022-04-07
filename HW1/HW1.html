@@ -22,14 +22,26 @@
 	<script src="https://threejs.org/build/three.min.js"></script>
 	<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<!--
+	<audio id="wallcollision" style="display:none">
+	<source src="./wallcollision.mp3" type='audio/mp3' allow="autoplay">
+	</audio>
+	
+	<audio id="puckcollision" style="display:none">
+	<source src="./puckcollision.mp3"  type='audio/mp3'>
+	</audio>-->
 
 	<script>
 		var scene, renderer, camera;
 		var Light, Light2, lights = [];
 		var floor, wall = new THREE.Group(), pucks = [];
 
-
-
+		function Collision() {
+　			const audio = document.createElement("audio");
+　			audio.src = "./wallcollision.mp3";
+　			audio.play();
+		}
+		
 		class Puck{
 			constructor(pos, vel, mesh){
 				this.pos = pos;
@@ -44,21 +56,25 @@
 				this.vel.add(this.force.clone().multiplyScalar(dt));
 				this.pos.add(this.vel.clone().multiplyScalar(dt));	
 					
-				if(this.pos.z < -60+10){
+				if(this.pos.z < -60+7){
 					this.vel.z = -this.vel.z;
-					this.pos.z = -60+10;
+					this.pos.z = -60+7;
+					Collision();
 				}
-				if(this.pos.z > 60-10){
+				if(this.pos.z > 60-7){
 					this.vel.z = -this.vel.z;
-					this.pos.z = 60-10;
+					this.pos.z = 60-7;
+					Collision();
 				}
-				if(this.pos.x < -60+10){
+				if(this.pos.x < -60+7){
 					this.vel.x = -this.vel.x;
-					this.pos.x = -60+10;
+					this.pos.x = -60+7;
+					Collision();
 				}
-				if(this.pos.x> 60-10){
+				if(this.pos.x> 60-7){
 					this.vel.x = -this.vel.x;
-					this.pos.x = 60-10;
+					this.pos.x = 60-7;
+					Collision();
 				}
 				
 				this.mesh.position.copy (this.pos);
@@ -74,6 +90,8 @@
 		}
 		
 		function rebound(p1, p2, v1, v2){
+			Collision();
+
 			var vp1 = p1.clone(), vp2 = p2.clone();
 			var vv1 = new THREE.Vector3().copy(v1);
 			var vv2 = new THREE.Vector3().copy(v2);
@@ -112,8 +130,10 @@
 							pucks[i].vel = rebound(pucks[i].pos, pucks[j].pos, pucks[i].vel, pucks[j].vel);
 							//vChange(pucks[i].pos, pucks[j].pos, pucks[i].vel, pucks[j].vel);
 							pucks[j].vel = rebound(pucks[j].pos, pucksip, pucks[j].vel, pucksiv);
+							
 						}
 					}
+					
 				}
 			}
 		}
