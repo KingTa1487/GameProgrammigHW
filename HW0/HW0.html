@@ -348,7 +348,6 @@
 
 		function animate(){
 			var dt = clock.getDelta();
-			
 			let cameraRoot = camera.position.clone();
 			cameraRoot.y = 0;
 			trees.forEach(function(t){t.lookAt(cameraRoot)})			

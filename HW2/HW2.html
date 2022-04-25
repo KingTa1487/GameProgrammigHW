@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	#info{
+		position: absolute;
+		top: 0px;
+		width: 100%;
+		padding: 10px;
+		text-align:center;
+		color: #ffffff;
+	}
+	body{
+		overflow: hidden;
+	}
+</style>
+</head>
+<body>
+<div id="info"><br>HW2<br><br>
+	<button id="go">Go!</button>
+</div>
+	<script src="https://threejs.org/build/three.min.js"></script>
+	<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	
+	<script>
+		var camera, renderer, scene;
+		var clock = new THREE.Clock(), angle = 0;
+		var Steve = new THREE.Object3D(), Go = false, big = true;;
+		var arms1, arms2, legs1, legs2;
+		
+		var theta1 = 0, theta2 = 0;
+		var pose1 = {
+			theta1: -Math.PI/4,
+			theta2: Math.PI/4
+		}
+		var pose2 = {
+			theta1:	Math.PI/4,
+			theta2: -Math.PI/4
+		}
+		var keys = [[0, pose1], [0.5, pose2], [1, pose1]];
+		var clock = new THREE.Clock();
+		var ts = clock.getElapsedTime();
+		var intkey = [];
+		
+		init();
+		animate();
+		
+		function init(){
+			scene = new THREE.Scene();
+			
+			renderer = new THREE.WebGLRenderer({antialias: true});
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setClearColor(0x444444);
+			document.body.appendChild(renderer.domElement);
+
+			camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 1, 1000);
+			camera.position.set(0, 100, 300);
+			let controls = new THREE.OrbitControls(camera, renderer.domElement);
+			
+			var gridXZ = new THREE.GridHelper(400, 20, 'red', 0xcccccc);
+			scene.add(gridXZ);
+			
+			//軌道
+			var bigCircle = new THREE.Mesh(new THREE.RingGeometry(90, 110, 50), new THREE.MeshBasicMaterial({color:0x000000, side: THREE.DoubleSide}));
+			var littleCircle = new THREE.Mesh(new THREE.RingGeometry(40, 60, 50), new THREE.MeshBasicMaterial({color:0x000000, side: THREE.DoubleSide}));	
+			bigCircle.position.set(-50, 0.5, 0);
+			bigCircle.rotation.x = Math.PI/2;
+			littleCircle.position.set(100, 0.5, 0);
+			littleCircle.rotation.x = Math.PI/2;
+			scene.add(bigCircle, littleCircle);
+			
+			steve();
+			
+			
+			clock.getDelta();
+		}
+		
+		function steve(){
+			Steve.position.set(50, 0, 0);
+			
+			//head
+			var head = new THREE.Mesh(new THREE.SphereGeometry( 15, 32, 16 ), new THREE.MeshNormalMaterial());
+			head.position.set(0, 35, 0);
+			head.rotation.x = Math.PI/2;
+			
+			//eyes
+			var eyes1, eyes2;
+			eyes1 = new THREE.Mesh(new THREE.BoxGeometry(2, 5, 2), new THREE.MeshBasicMaterial({color:'black'}));
+			eyes2 = eyes1.clone();
+			eyes1.position.set(-13, 33, 7);
+			eyes2.position.set(-13, 33, -7);
+			
+			//body
+			var body = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 20), new THREE.MeshNormalMaterial());
+			body.position.set(0, 20, 0);
+			
+			//arms
+			arms1 = Arms(1.5, 12, 'white');
+			arms1.position.set(0, 20, 6);
+			arms1.rotation.x = Math.PI;
+			
+			arms2 = Arms(1.5, 12, 'white');
+			arms2.position.set(0, 20, -6);
+			arms2.rotation.x = Math.PI;
+			
+			//legs
+			legs1 = Legs(2, 10, 'yellow');
+			legs2 = Legs(2, 10, 'yellow');
+			legs1.position.set(0, 10, 3);
+			legs2.position.set(0, 10, -3);
+			legs1.rotation.x = Math.PI;
+			legs2.rotation.x = Math.PI;
+			
+			Steve.add(head, eyes1, eyes2, body, arms1, arms2, legs1, legs2);
+			Steve.rotation.y = Math.PI/2;
+			scene.add(Steve);
+		}
+		
+		function Arms(r, l, c = 'white'){
+			let A = new THREE.Object3D();
+			let arm = new THREE.Mesh(new THREE.CylinderGeometry(r, r, l), new THREE.MeshBasicMaterial({color : c}));
+			A.add(arm);
+			arm.position.set(0, l/2, 0);
+			return A;
+		}
+		
+		function Legs(r, l, c = 'white'){
+			let L = new THREE.Object3D();
+			let leg = new THREE.Mesh(new THREE.CylinderGeometry(r, r, l), new THREE.MeshBasicMaterial({color : c}));
+			L.add(leg);
+			leg.position.set(0, l/2, 0);
+			return L;
+		}
+		
+		$("#go").click(function(){
+			Go = !Go;
+		})
+		
+		function keyframe(t){
+			var s = ((t-ts) % 2)/2;
+			
+			for(var i = 1; i < keys.length; i++){
+				if(keys[i][0] > s)
+					break;
+			}
+			
+			var j = i-1;
+			var a = (s - keys[j][0] )/ (keys[j+1][0] - keys[j][0]);
+			intkey = [ keys[j][1].theta1*(1-a) + keys[j+1][1].theta1*a, 
+					   keys[j][1].theta2*(1-a) + keys[j+1][1].theta2*a	
+			];
+			
+		}
+		
+		function animate(){
+			var dt = clock.getDelta();
+			
+			var steve;
+			//arms2.rotation.z += 0.1;
+			keyframe(clock.getElapsedTime());
+			
+			if(Go == true){
+				angle += Math.PI/600;
+				
+				if(big){	
+					steve = Steve.clone();
+					Steve.position.set(100*Math.cos(angle)-50, 0, 100*Math.sin(angle));
+					Steve.rotation.y -= Math.PI/600;
+					
+					arms1.rotation.z = intkey[0];
+					arms2.rotation.z = -intkey[0];
+					legs1.rotation.z = intkey[1];
+					legs2.rotation.z = -intkey[1];
+				}
+				if(!big){
+					//angle += Math.PI/600;
+					steve = Steve.clone();
+					Steve.position.set(-50*Math.cos(angle)+100, 0, 50*Math.sin(angle));
+					Steve.rotation.y += Math.PI/600;
+					
+					arms1.rotation.z = intkey[0];
+					arms2.rotation.z = -intkey[0];
+					legs1.rotation.z = intkey[1];
+					legs2.rotation.z = -intkey[1];
+				}
+				
+				if(Steve.position.x == 50)
+					big = !big;
+				
+					
+				
+			}
+			
+			requestAnimationFrame(animate);
+			render();
+		}
+		
+		function render(){
+			
+			renderer.render(scene, camera);
+		}
+	</script>
+</body>
+</html>
