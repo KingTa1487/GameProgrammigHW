@@ -29,7 +29,7 @@
 		var cameraHelper, camera3rd, use3rd = true;
 		
 		var clock = new THREE.Clock(), angle = 0;
-		var Steve = new THREE.Object3D(), Go = false, big = true;;
+		var Steve = new THREE.Object3D(), Go = true, big = true;;
 		var arms1, arms2, legs1, legs2;
 		
 		var theta1 = 0, theta2 = 0;
@@ -43,7 +43,7 @@
 		}
 		var keys = [[0, pose1], [0.5, pose2], [1, pose1]];
 		var clock = new THREE.Clock();
-		var ts = clock.getElapsedTime();
+		var ts=0, t=0, tt=0;
 		var intkey = [];
 		
 		init();
@@ -155,11 +155,12 @@
 		
 		$("#go").click(function(){
 			Go = !Go;
+
 		})
 		
-		function keyframe(t){
-			var s = ((t-ts) % 2)/2;
-			
+		function keyframe(tt){
+			var s = (( tt) % 2)/2;
+
 			for(var i = 1; i < keys.length; i++){
 				if(keys[i][0] > s)
 					break;
@@ -170,18 +171,21 @@
 			intkey = [ keys[j][1].theta1*(1-a) + keys[j+1][1].theta1*a, 
 					   keys[j][1].theta2*(1-a) + keys[j+1][1].theta2*a	
 			];
-			
 		}
 		
 		function animate(){
-			var dt = clock.getDelta();
+			
 			
 			var steve;
 			//arms2.rotation.z += 0.1;
-			keyframe(clock.getElapsedTime());
+			
 			
 			if(Go == true){
 				angle += Math.PI/600;
+				var dt = clock.getDelta();
+				tt += 0.016;
+		
+				keyframe(tt);
 				
 				if(big){	
 					steve = Steve.clone();
