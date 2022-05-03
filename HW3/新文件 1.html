@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	#info{
+		position: absolute;
+		top: 0px;
+		width: 100%;
+		padding: 10px;
+		text-align:center;
+		color: #ffffff;
+	}
+	body{
+		overflow: hidden;
+	}
+</style>
+</head>
+<body>
+<div id="info"><br>HW2<br><br>
+	<button id='switch'>using THIRD</button>
+</div>
+	<script src="https://threejs.org/build/three.min.js"></script>
+	<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+	
+	<script>
+		/*var camera, scene, renderer;
+
+		var keyboard = new KeyboardState();
+		var clock;
+
+		var car;
+		var pos = new THREE.Vector3();
+		var vel = new THREE.Vector3();
+		var force = new THREE.Vector3();
+		var power, angle;*/
+		
+		var camera, renderer, scene;
+		var cameraHelper, camera3rd, use3rd = true;
+		
+		//Steve
+		var Steve = new THREE.Object3D();
+		var arms1, arms2, legs1, legs2;
+		
+		//移動
+		var clock, keyboard = new KeyboardState();
+		var angle, power;
+		var pos = new THREE.Vector3();
+		var vel = new THREE.Vector3();
+		var force = new THREE.Vector3();
+		
+		//關鍵影格
+		var theta1 = 0, theta2 = 0;
+		var pose1 = {
+			theta1: -Math.PI/4,
+			theta2: Math.PI/4
+		}
+		var pose2 = {
+			theta1:	Math.PI/4,
+			theta2: -Math.PI/4
+		}
+		var keys = [[0, pose1], [0.5, pose2], [1, pose1]];
+		var tt = 0;
+		var intkey = [];
+			
+		(function() {
+			Math.clamp = function(val,min,max){
+			return Math.min(Math.max(val,min),max);
+    
+		}})();
+  
+		init();
+		animate();
+
+		function buildVehicle() {
+			car = new THREE.Object3D();
+			var mat = new THREE.MeshNormalMaterial();
+			var body = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 2, 20), mat);
+			car.add(body);
+			var pointer = new THREE.Mesh(new THREE.BoxGeometry(10, 2, 2), mat);
+			car.add(pointer);
+			pointer.position.x = 5;
+			scene.add(car);
+		}
+
+		function init() {
+
+			clock = new THREE.Clock();
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+			camera.position.set (0, 200, 250);
+			scene.add(camera);
+
+			var gridXZ = new THREE.GridHelper(200, 20, 'red', 'white');
+			scene.add(gridXZ);
+
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setClearColor(0x888888);
+
+			var controls = new THREE.OrbitControls(camera, renderer.domElement);
+	
+			// disable OrbitControl keys
+			controls.enableKeys = false;
+  
+			document.body.appendChild(renderer.domElement);
+			////////////////////////////////////////////////////////////////////////
+			power = 5.0;
+			angle = 0.0;
+			
+			buildVehicle();
+			
+
+		}
+
+		function update(dt) {
+
+			keyboard.update();
+  
+			if (vel.length() > 0) {
+				angle = 1.5*Math.PI + Math.atan2(vel.x, vel.z); 
+			}
+
+			if (keyboard.pressed("space"))  
+				power = 0.1;               
+			if (keyboard.pressed("up"))  
+				power *= 1.2;        
+			if (keyboard.pressed("down"))  
+				power /= 1.2;   
+ 	
+			power = Math.clamp (power, 0, 80.0); 
+  
+  
+			var angle_thrust = angle;
+			if (keyboard.pressed("left"))
+				angle_thrust += 0.3;
+			if (keyboard.pressed("right"))
+				angle_thrust -= 0.3;
+    
+			// compute force
+			var thrust = new THREE.Vector3(1,0,0).multiplyScalar(power).applyAxisAngle (new THREE.Vector3(0,1,0), angle_thrust);
+			force.copy (thrust);
+			force.add(vel.clone().multiplyScalar(-2))
+
+			// eulers
+			vel.add(force.clone().multiplyScalar(dt));
+			pos.add(vel.clone().multiplyScalar(dt));
+		}
+
+		function animate() {
+
+			var dt = clock.getDelta();
+			update(dt);
+
+			// car update
+			car.position.copy(pos);
+			car.rotation.y = angle;
+
+			requestAnimationFrame(animate);
+			renderer.render(scene, camera);
+		}
+
+		
+	</script>
+</body>
+</html>

@@ -16,22 +16,30 @@
 </style>
 </head>
 <body>
-<div id="info"><br>HW2<br><br>
-	<button id="go">Go!</button>
+<div id="info"><br>HW3<br><br>
 	<button id='switch'>using THIRD</button>
 </div>
 	<script src="https://threejs.org/build/three.min.js"></script>
 	<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
 	
 	<script>
 		var camera, renderer, scene;
 		var cameraHelper, camera3rd, use3rd = true;
 		
-		var clock = new THREE.Clock(), angle = 0;
-		var Steve = new THREE.Object3D(), Go = true, big = true;
+		//Steve
+		var Steve = new THREE.Object3D();
 		var arms1, arms2, legs1, legs2;
 		
+		//移動
+		var clock, keyboard = new KeyboardState();
+		var angle, power;
+		var pos = new THREE.Vector3();
+		var vel = new THREE.Vector3();
+		var force = new THREE.Vector3();
+		
+		//關鍵影格
 		var theta1 = 0, theta2 = 0;
 		var pose1 = {
 			theta1: -Math.PI/4,
@@ -42,20 +50,31 @@
 			theta2: -Math.PI/4
 		}
 		var keys = [[0, pose1], [0.5, pose2], [1, pose1]];
-		var clock = new THREE.Clock(), tt = 0;
+		var tt = 2.5 , t2 = 0;
 		var intkey = [];
+		
+		//////////////////////////////////////////
+		
+		//施力
+		(function() {
+			Math.clamp = function(val,min,max){
+				return Math.min(Math.max(val,min),max);
+    
+		 }})();	
 		
 		init();
 		animate();
 		
+		//視角
 		$('#switch').click ( function () {
 			use3rd= !use3rd;
 			if (use3rd) $('#switch').text ('using THIRD')
 			else $('#switch').text ('using ORBIT')
-		})
+		})	 
 		
 		function init(){
 			scene = new THREE.Scene();
+			clock = new THREE.Clock();
 			
 			renderer = new THREE.WebGLRenderer({antialias: true});
 			renderer.setSize(window.innerWidth, window.innerHeight);
@@ -67,27 +86,23 @@
 			camera3rd = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
 			
 			let controls = new THREE.OrbitControls(camera, renderer.domElement);
+			controls.enableKeys = false;
 			
 			var gridXZ = new THREE.GridHelper(400, 20, 'red', 0xcccccc);
 			scene.add(gridXZ);
-			
-			//軌道
-			var bigCircle = new THREE.Mesh(new THREE.RingGeometry(90, 110, 50), new THREE.MeshBasicMaterial({color:0x000000, side: THREE.DoubleSide}));
-			var littleCircle = new THREE.Mesh(new THREE.RingGeometry(40, 60, 50), new THREE.MeshBasicMaterial({color:0x000000, side: THREE.DoubleSide}));	
-			bigCircle.position.set(-50, 0.5, 0);
-			bigCircle.rotation.x = Math.PI/2;
-			littleCircle.position.set(100, 0.5, 0);
-			littleCircle.rotation.x = Math.PI/2;
-			scene.add(bigCircle, littleCircle);
-			
+
+			power = 0.0;
+			angle = 0.0;
 			steve();
+			
 			//視角
 			cameraHelper = makeCameraHelper();
 			scene.add (cameraHelper);
 			
-			clock.getDelta();
+			
 		}
 		
+		//跟拍相機
 		function makeCameraHelper() {
 			var cameraModel = new THREE.Group();
 			var body = new THREE.Mesh (new THREE.BoxGeometry(10,6,3), new THREE.MeshNormalMaterial());
@@ -96,6 +111,7 @@
 			return cameraModel;
 		}
 		
+		//Steve
 		function steve(){
 			Steve.position.set(50, 0, 0);
 			
@@ -133,10 +149,9 @@
 			legs2.rotation.x = Math.PI;
 			
 			Steve.add(head, eyes1, eyes2, body, arms1, arms2, legs1, legs2);
-			Steve.rotation.y = Math.PI/2;
+			Steve.rotation.y = Math.PI;
 			scene.add(Steve);
 		}
-		
 		function Arms(r, l, c = 'white'){
 			let A = new THREE.Object3D();
 			let arm = new THREE.Mesh(new THREE.CylinderGeometry(r, r, l), new THREE.MeshBasicMaterial({color : c}));
@@ -144,7 +159,6 @@
 			arm.position.set(0, l/2, 0);
 			return A;
 		}
-		
 		function Legs(r, l, c = 'white'){
 			let L = new THREE.Object3D();
 			let leg = new THREE.Mesh(new THREE.CylinderGeometry(r, r, l), new THREE.MeshBasicMaterial({color : c}));
@@ -153,10 +167,58 @@
 			return L;
 		}
 		
-		$("#go").click(function(){
-			Go = !Go;
-		})
+		//keyboard
+		function update(dt){
+			keyboard.update();
+			
+			
+			if(vel.length() > 0){
+				angle = 1.5*Math.PI + Math.atan2(vel.x, vel.z);
+			}
+			if(keyboard.pressed("space")){
+				power = 0.0;
+			}	
+			if(keyboard.pressed("up")){
+				if(power == 0)
+					power = 0.1;
+				power *= 2;
+			}
+			if(keyboard.pressed("down")){
+				power /= 1.1;
+				if(power <= 0.001)
+					power = 0.001;
+			}
+				
+			var angle_thrust = angle;
+			if(keyboard.pressed("left")){
+				if(power == 0){
+					power = 0.000001;
+					angle_thrust += 0.3;
+				}
+				else
+					angle_thrust += 0.3;
+			}
+			if(keyboard.pressed("right")){
+				if(power == 0){
+					power = 0.000001;
+					angle_thrust -= 0.3;
+				}
+				else
+					angle_thrust -= 0.3;
+			}
+				
+			power = Math.clamp(power, 0, 80.0);
+			
+				
+			var thrust = new THREE.Vector3(1,0,0).multiplyScalar(power).applyAxisAngle (new THREE.Vector3(0,1,0), angle_thrust);
+			force.copy(thrust);
+			force.add(vel.clone().multiplyScalar(-2));
+			
+			vel.add(force.clone().multiplyScalar(dt));
+			pos.add(vel.clone().multiplyScalar(dt));
+		}
 		
+		//關鍵影格
 		function keyframe(tt){
 			var s = ((tt) % 2)/2;
 
@@ -169,41 +231,49 @@
 			var a = (s - keys[j][0] )/ (keys[j+1][0] - keys[j][0]);
 			intkey = [ keys[j][1].theta1*(1-a) + keys[j+1][1].theta1*a, 
 					   keys[j][1].theta2*(1-a) + keys[j+1][1].theta2*a	
-			];
+					 ];
 		}
 		
 		function animate(){
-
-			if(Go == true){
-				angle += Math.PI/600;
-				var dt = clock.getDelta();
-				tt += 0.016;
-		
-				keyframe(tt);
-				
-				if(big){	
-					Steve.position.set(100*Math.cos(angle)-50, 0, 100*Math.sin(angle));
-					Steve.rotation.y -= Math.PI/600;
-					
-					arms1.rotation.z = intkey[0];
-					arms2.rotation.z = -intkey[0];
-					legs1.rotation.z = intkey[1];
-					legs2.rotation.z = -intkey[1];
-				}
-				if(!big){
-					Steve.position.set(-50*Math.cos(angle)+100, 0, 50*Math.sin(angle));
-					Steve.rotation.y += Math.PI/600;
-					
-					arms1.rotation.z = intkey[0];
-					arms2.rotation.z = -intkey[0];
-					legs1.rotation.z = intkey[1];
-					legs2.rotation.z = -intkey[1];
-				}
-				
-				if(Steve.position.x == 50)
-					big = !big;
+			
+			var dt = clock.getDelta();
+			update(dt);
+						
+			
+			Steve.rotation.y = angle + Math.PI;
+			Steve.position.copy(pos);
+			
+			
+			if(keyboard.pressed("left") || keyboard.pressed("right")){
+				tt += angle/1000;	
 			}
 			
+			if(power != 0){
+				if(power/90 > 0.02)
+					tt += 0.02;
+				else
+					tt += power/90;
+			}
+			
+			if(power == 0){
+				if(tt == 2.5 )
+					keyframe(0);
+
+				else{
+					keyframe(tt);
+					if(intkey[0] < 0.005 && intkey[0] > -0.005)
+						tt += 0;
+					else
+						tt += 0.007;
+				}
+				
+			}
+			keyframe(tt);
+			
+			arms1.rotation.z = intkey[0];
+			arms2.rotation.z = -intkey[0];
+			legs1.rotation.z = intkey[1];
+			legs2.rotation.z = -intkey[1];
 			////////camera
 			 // third person camera
 			var thirdPos = Steve.localToWorld (new THREE.Vector3(80 ,65 ,0));
