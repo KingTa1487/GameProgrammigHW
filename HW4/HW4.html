@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	#info{
+		position: absolute;
+		top: 0px;
+		width: 100%;
+		padding: 10px;
+		text-align:center;
+		color: #ffffff;
+	}
+	body{
+		overflow: hidden;
+	}
+</style>
+</head>
+<body>
+<div id="info"><br>HW3<br><br>
+	
+</div>
+	<script src="https://threejs.org/build/three.min.js"></script>
+    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="Steve.js"></script>
+	<script src="Agent.js"></script>
+	
+	<script>
+		
+		var camera, renderer, scene;
+		var clock = new THREE.Clock();
+		
+		var mouse = new THREE.Vector2();
+		var steve, agent, targetMesh;
+		var raycaster, pickables;
+		
+		init();
+		animate();
+		
+		function clamp (val, min, max) { // min <= val <= max
+			return Math.min(Math.max(val,min),max);
+		}
+		
+		function agentMesh () {
+			// mesh facing +x
+			//var r = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({color:'red'}));
+			steve = new Steve(0, 2.5);
+			return steve;
+		}
+		
+		function init(){
+			scene = new THREE.Scene();
+			
+			
+			renderer = new THREE.WebGLRenderer({antialias: true});
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setClearColor(0x444444);
+			document.body.appendChild(renderer.domElement);
+
+			camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 1, 1000);
+			camera.position.set(0, 300, 600);
+			
+			let controls = new THREE.OrbitControls(camera, renderer.domElement);
+			controls.enableKeys = false;
+			
+			var gridXZ = new THREE.GridHelper(800, 20, 'red', 0xcccccc);
+			scene.add(gridXZ);
+
+			//steve = new Steve(0, 2.5);
+			clock.getDelta();
+			
+			///////////////////////////////////
+			/////////////////////////////////////////////////////////////////////
+			let plane = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({
+				transparent: true,
+				opacity: 0.5,
+				visible: true
+			}));
+			scene.add(plane);
+			plane.material.visible = false;
+			plane.rotation.x = -Math.PI / 2;
+			pickables = [plane];
+
+			let loader = new THREE.TextureLoader();
+			let tex = loader.load ("./GmthNU8.png");
+				targetMesh = new THREE.Mesh(new THREE.CircleGeometry(10,20), new THREE.MeshBasicMaterial({
+				map: tex,
+				transparent:true
+			}));
+			
+			scene.add(targetMesh);
+			targetMesh.rotation.x = -Math.PI/2
+
+			raycaster = new THREE.Raycaster();
+			document.addEventListener('pointerdown', onDocumentMouseDown, false);
+			////////////////////////
+			let mesh = agentMesh ();
+			agent = new Agent(new THREE.Vector3(-100 + 200 * Math.random(), 0, -100 + 200 * Math.random()), mesh);
+		}
+		
+			//關鍵影格
+		function keyframe(tt){
+			var s = ((tt) % 2)/2;
+
+			for(var i = 1; i < steve.keys.length; i++){
+				if(steve.keys[i][0] > s)
+					break;
+			}
+		
+			var j = i-1;
+			var a = (s - steve.keys[j][0] )/ (steve.keys[j+1][0] - steve.keys[j][0]);
+			steve.intkey = [ steve.keys[j][1].theta1*(1-a) + steve.keys[j+1][1].theta1*a, 
+							steve.keys[j][1].theta2*(1-a) + steve.keys[j+1][1].theta2*a
+						];
+		}
+		
+		function onDocumentMouseDown(event) {
+
+			event.preventDefault();
+			mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+			mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+			// find intersections
+			raycaster.setFromCamera(mouse, camera);
+			var intersects = raycaster.intersectObjects(pickables);
+			if (intersects.length > 0) {
+				targetMesh.position.copy(intersects[0].point);
+				targetMesh.position.y = 0.15
+				agent.setTarget (intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+			}
+		}
+		
+		function animate(){
+			
+			var dt = clock.getDelta();
+			agent.update(dt);
+			
+			keyframe(steve.tt);
+			
+			steve.arms1.rotation.z = steve.intkey[0];
+			steve.arms2.rotation.z = -steve.intkey[0];
+			steve.legs1.rotation.z = steve.intkey[1];
+			steve.legs2.rotation.z = -steve.intkey[1];
+			
+			renderer.render (scene, camera);	
+			requestAnimationFrame(animate);
+		}
+		
+	</script>
+</body>
+</html>
