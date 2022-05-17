@@ -11,9 +11,9 @@
 			this.loader = new THREE.TextureLoader();
 			//移動
 			this.angle = angle;
-			/*this.pos = new THREE.Vector3();
+			this.pos = new THREE.Vector3();
 			this.vel = new THREE.Vector3();
-			this.force = new THREE.Vector3();*/
+			this.force = new THREE.Vector3();
 		
 			//關鍵影格
 			var theta1 = 0, theta2 = 0;
@@ -31,7 +31,6 @@
 
 			///Steve
 			this.Steve.position.set(0, 0, 0);
-			this.Steve.rotation.y = Math.PI/2;
 			//head
 			this.loader.crossOrigin = '';
 			 let headtex = this.loader.load('./head.jpg');
@@ -41,7 +40,6 @@
 			});
 			this.head = new THREE.Mesh(new THREE.SphereGeometry( 15, 32, 16 ), headMap);
 			this.head.position.set(0, 35, 0);
-			this.head.rotation.y = Math.PI;
 			
 			//body
 			this.loader.crossOrigin = '';
@@ -51,7 +49,7 @@
 					side:THREE.DoubleSide
 				});
 			this.body = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 20), bodyMap);
-			this.body.rotation.y = Math.PI/2;
+			this.body.rotation.y = -Math.PI/2;
 			this.body.position.set(0, 20, 0);
 			
 			/*//eyes
@@ -92,7 +90,8 @@
 			this.legs2.rotation.x = Math.PI;
 			
 			this.Steve.add(this.head, this.body, this.arms1, this.arms2, this.legs1, this.legs2);
-			scene.add(this.Steve);
+			//scene.add(this.Steve);
+			
 		}
 		
 	}
