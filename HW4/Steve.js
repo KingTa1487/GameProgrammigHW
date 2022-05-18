@@ -101,6 +101,7 @@
 		let arm = new THREE.Mesh(new THREE.CylinderGeometry(r, r, l), armsMap);
 		A.add(arm);
 		arm.position.set(0, l/2, 0);
+		arm.rotation.x = Math.PI;
 		return A;
 	}
 	
@@ -110,6 +111,7 @@
 		let leg = new THREE.Mesh(new THREE.CylinderGeometry(r, r, l), legsMap);
 		L.add(leg);
 		leg.position.set(0, l/2, 0);
+		leg.rotation.x = Math.PI;
 		return L;
 	}
 	//export {Steve};

@@ -22,6 +22,8 @@
 	<script src="https://threejs.org/build/three.min.js"></script>
     <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="https://raw.githack.com/mrdoob/three.js/dev/examples/js/loaders/MTLLoader.js"></script>
+	<script src="https://raw.githack.com/mrdoob/three.js/dev/examples/js/loaders/OBJLoader.js"></script>
 	<script src="Steve.js"></script>
 	<script src="Agent.js"></script>
 	
@@ -29,6 +31,7 @@
 		
 		var camera, renderer, scene;
 		var clock = new THREE.Clock();
+		var Light;
 		
 		var mouse = new THREE.Vector2();
 		var steve, agent, targetMesh;
@@ -37,14 +40,69 @@
 		init();
 		animate();
 		
-		function clamp (val, min, max) { // min <= val <= max
-			return Math.min(Math.max(val,min),max);
+		/////車煮
+		function readModel (modelName, targetSize=180) {
+			var onProgress = function(xhr) {
+				if (xhr.lengthComputable) {
+					var percentComplete = xhr.loaded / xhr.total * 100;
+					console.log(Math.round(percentComplete, 2) + '% downloaded');
+				}
+			};
+
+			var onError = function(xhr) {};
+
+			var mtlLoader =  new THREE.MTLLoader();
+			mtlLoader.setPath('Muscle/');
+			mtlLoader.load('Muscle.mtl.', function(materials) {
+			materials.preload();
+
+			var objLoader =  new THREE.OBJLoader();
+			objLoader.setMaterials(materials);
+			objLoader.setPath('Muscle/');
+			objLoader.load('Muscle.obj', function(object) {
+
+			let theObject =  unitize (object, targetSize);
+			//theObject.add(new THREE.BoxHelper(theObject));
+			theObject.name = 'OBJ'
+
+			targetMesh = new THREE.Object3D();
+			targetMesh.add(theObject);
+			targetMesh.position.set(0, 25, 0);
+
+			scene.add (targetMesh);
+
+			}, onProgress, onError);
+
+			});
+
 		}
 		
-		function agentMesh () {
-			// mesh facing +x
-			var r = new THREE.Mesh(new THREE.SphereGeometry( 1, 32, 16 ), new THREE.MeshNormalMaterial());
-			return r;
+		function unitize(object, targetSize=50){
+			
+			var box3 = new THREE.Box3();
+			box3.setFromObject(object);
+			var size = new THREE.Vector3();
+			size.subVectors(box3.max, box3.min);
+			var center = new THREE.Vector3();
+			center.addVectors(box3.max, box3.min).multiplyScalar(0.5);
+			
+			console.log('center:'+center.x + ','+center.y + ','+center.z);
+			console.log('size:' + size.x + ','+ size.y +',' + size.z);
+			
+			var objSize = Math.max(size.x, size.y, size.z);
+			var scaleSet = targetSize/objSize;
+			
+			var theObject = new THREE.Object3D();
+			theObject.add(object);
+			object.scale.set(scaleSet, scaleSet, scaleSet);
+			object.position.set(-center.x*scaleSet, -center.y*scaleSet, -center.z*scaleSet);
+			
+			return theObject;
+		}
+		
+		
+		function clamp (val, min, max) { // min <= val <= max
+			return Math.min(Math.max(val,min),max);
 		}
 		
 		function init(){
@@ -81,21 +139,16 @@
 			plane.rotation.x = -Math.PI / 2;
 			pickables = [plane];
 
-			let loader = new THREE.TextureLoader();
-			let tex = loader.load ("./GmthNU8.png");
-				targetMesh = new THREE.Mesh(new THREE.CircleGeometry(10,20), new THREE.MeshBasicMaterial({
-				map: tex,
-				transparent:true
-			}));
-			
-			scene.add(targetMesh);
-			targetMesh.rotation.x = -Math.PI/2
+			readModel();
 
 			raycaster = new THREE.Raycaster();
 			document.addEventListener('pointerdown', onDocumentMouseDown, false);
 			////////////////////////
-			let mesh = agentMesh ();
 			agent = new Agent(new THREE.Vector3(-200 + 400 * Math.random(), 0, -200 + 400 * Math.random()), steve.Steve);
+		
+			let Light = new THREE.PointLight(0xffffff);
+			Light.position.set(0, 600, 0);
+			scene.add(Light);
 		}
 		
 			//關鍵影格
@@ -125,8 +178,8 @@
 			var intersects = raycaster.intersectObjects(pickables);
 			if (intersects.length > 0) {
 				targetMesh.position.copy(intersects[0].point);
-				targetMesh.position.y = 0.15
-				agent.setTarget (intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+				targetMesh.position.y = 25;
+				agent.setTarget (intersects[0].point.x-50, intersects[0].point.y, intersects[0].point.z);
 			}
 		}
 		
@@ -138,14 +191,16 @@
 			if(agent.target == null)
 				steve.tt = 2.5;
 			else{
-				if(agent.speed/2000 > 0.0001){
+				if(agent.speed/2000 > 0.0005){
 					steve.tt += agent.speed/2000;
 				}
 				else{
-					
+					if(steve.intkey[0] < 0.005 && steve.intkey[0] > -0.005)
+						steve.tt += 0;
+					else
+						steve.tt += 0.007;
 				}
 			}
-			
 			keyframe(steve.tt);
 			
 			steve.arms1.rotation.z = steve.intkey[0];
