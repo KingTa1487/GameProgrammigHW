@@ -33,7 +33,7 @@
 			this.Steve.position.set(0, 0, 0);
 			//head
 			this.loader.crossOrigin = '';
-			 let headtex = this.loader.load('./head.jpg');
+			 let headtex = this.loader.load('https://i.imgur.com/sxoIpKR.jpg');
 			 let headMap = new THREE.MeshBasicMaterial({
 				map:headtex, 
 				side:THREE.DoubleSide
@@ -43,7 +43,7 @@
 			
 			//body
 			this.loader.crossOrigin = '';
-			let bodytex = this.loader.load('./clothes.png');
+			let bodytex = this.loader.load('https://i.imgur.com/sbK7cBN.png');
 			let bodyMap = new THREE.MeshBasicMaterial({
 					map:bodytex, 
 					side:THREE.DoubleSide
@@ -60,7 +60,7 @@
 			
 			//arms
 			this.loader.crossOrigin = '';
-			let armstex = this.loader.load('./arms.png');
+			let armstex = this.loader.load('https://i.imgur.com/b8vLgjP.png');
 			let armsMap = new THREE.MeshBasicMaterial({
 				map:armstex, 
 				side:THREE.DoubleSide
@@ -76,7 +76,7 @@
 			
 			//legs
 			this.loader.crossOrigin = '';
-			let legstex = this.loader.load('./legs.png');
+			let legstex = this.loader.load('https://i.imgur.com/wviz9Rm.png');
 			let legsMap = new THREE.MeshBasicMaterial({
 				map:legstex, 
 				side:THREE.DoubleSide
