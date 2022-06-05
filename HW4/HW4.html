@@ -54,24 +54,24 @@
 			var mtlLoader =  new THREE.MTLLoader();
 			mtlLoader.setPath('Muscle/');
 			mtlLoader.load('Muscle.mtl', function(materials) {
-			materials.preload();
+				materials.preload();
 
-			var objLoader =  new THREE.OBJLoader();
-			objLoader.setMaterials(materials);
-			objLoader.setPath('Muscle/');
-			objLoader.load('Muscle.obj', function(object) {
+				var objLoader =  new THREE.OBJLoader();
+				objLoader.setMaterials(materials);
+				objLoader.setPath('Muscle/');
+				objLoader.load('Muscle.obj', function(object) {
 
-			let theObject =  unitize (object, targetSize);
-			//theObject.add(new THREE.BoxHelper(theObject));
-			theObject.name = 'OBJ'
+					let theObject =  unitize (object, targetSize);
+					//theObject.add(new THREE.BoxHelper(theObject));
+					theObject.name = 'OBJ'
 
-			targetMesh = new THREE.Object3D();
-			targetMesh.add(theObject);
-			targetMesh.position.set(0, 25, 0);
+					targetMesh = new THREE.Object3D();
+					targetMesh.add(theObject);
+					targetMesh.position.set(0, 25, 0);
 
-			scene.add (targetMesh);
-
-			}, onProgress, onError);
+					scene.add (targetMesh);
+		
+				}, onProgress, onError);
 
 			});
 
