@@ -16,7 +16,7 @@
 </style>
 </head>
 <body>
-<div id="info"><br>HW3<br><br>
+<div id="info"><br>HW4<br><br>
 	
 </div>
 	<script src="https://threejs.org/build/three.min.js"></script>
@@ -53,7 +53,7 @@
 
 			var mtlLoader =  new THREE.MTLLoader();
 			mtlLoader.setPath('Muscle/');
-			mtlLoader.load('Muscle.mtl.', function(materials) {
+			mtlLoader.load('Muscle.mtl', function(materials) {
 			materials.preload();
 
 			var objLoader =  new THREE.OBJLoader();
