@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+	body {
+	  background-color: #fff;
+	  color: #111;
+	  margin: 0px;
+	  overflow: hidden;
+	font-family: Monospace;
+	  font-size: 20px;
+	}
+	
+	#info {
+	  position: absolute;
+	  top: 0px;
+	  width: 100%;
+	  padding: 5px;
+	  text-align: center;
+	  color: #ffff00
+	}
+</style>
+</head>
+
+<body> 
+<div id="info">
+  Hw5<br>
+</div>
+
+<script src="https://threejs.org/build/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="https://jyunming-chen.github.io/game3js/js/ccdsys.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="Body.js"></script>
+
+<script>
+var scene, renderer, camera;
+
+
+
+
+init();
+animate();
+
+
+////////////////////////////////////////////////////////////////
+function init() {
+	scene = new THREE.Scene();
+	
+	renderer = new THREE.WebGLRenderer({
+		antialias: true
+	});
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setClearColor(0x888888);
+	document.body.appendChild(renderer.domElement);
+	
+	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+	camera.position.set (0,80,210);
+	let controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+	var gridXZ = new THREE.GridHelper(300, 30, 'red', 'white');
+	scene.add(gridXZ);
+	window.addEventListener('resize', onWindowResize, false);
+
+	/////////////////////////////////////////////////////////////////////
+	var body = new Body();
+	
+}
+
+function onWindowResize() {
+	let width = window.innerWidth;
+	let height = window.innerHeight;
+	camera.aspect = width / height;
+	camera.updateProjectionMatrix();
+	renderer.setSize(width, height);
+}
+
+function update(){
+	
+}
+
+function animate() {
+  
+	requestAnimationFrame(animate);
+	update()
+  
+	let dt = 0.1;
+
+  
+	renderer.render(scene, camera);
+}
+
+
+
+
+
+</script>
+</body>
+
+</html>
